@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { toast, ToastContainer } from 'react-toastify'
 import db from './fireStore'
 import { collection, deleteDoc, doc, getDocs, setDoc, updateDoc } from 'firebase/firestore'
 import { useEffect } from 'react'
 import { FaEye, FaEyeSlash, FaTrash   } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
+import { IoCopy } from "react-icons/io5";
 function App() {
   const [email,setEmail] = useState("")
   const [password,setPassword] = useState("")
@@ -14,6 +15,7 @@ function App() {
   const [isEdit,setIsEdit] = useState(false)
   const [userId,setUserId] = useState()
   const [tempData ,setTempData] = useState({})
+  
   useEffect(()=>{
     const fetchData= async()=>{
       const snapshot = await getDocs(collectionREf)
@@ -25,10 +27,15 @@ function App() {
   },[])
   
 
+  const passwordRef = useRef(null)
+
   const notify = (info)=>{
       toast(info)
   }
 
+  const saveNotify = (info) =>{
+    toast(info)
+  }
 
   const deleteNotify = ()=>{
     toast("Data Deleted")
@@ -100,6 +107,12 @@ function App() {
     setPassword("")
   }
 
+  const copyPassword = (password)=>{
+    navigator.clipboard.writeText(password)
+    saveNotify("Password Copied")
+  }
+
+
   return (
     <>
       <div className='bg-gray-700 h-screen flex flex-row justify-center items-center gap-20'>
@@ -129,9 +142,10 @@ function App() {
                   <div>
                     <p>{doc.email}</p>
                       <div className='flex gap-3 '>
-                        <p>{visibility[doc.id]?doc.password:calcStars(doc.password)}</p>
+                        <p ref={passwordRef}>{visibility[doc.id]?doc.password:calcStars(doc.password)}</p>
                           {visibility[doc.id]? <FaEye className='mt-1 mx-2 cursor-pointer' onClick={()=> toggleVisibility(doc.id)} />:
                         <FaEyeSlash className='mt-1 mx-2 cursor-pointer'  onClick={()=>toggleVisibility(doc.id)}/>}
+                        <IoCopy className='mt-1 mx-2 cursor-pointer' onClick={()=> copyPassword(doc.password)} />
                       </div>
                   </div>
                   <div className='m-2 bg-amber-400 hover:bg-amber-500 p-2 rounded-sm' onClick={()=> delData(doc.id)}>
